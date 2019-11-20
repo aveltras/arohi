@@ -1,0 +1,21 @@
+cabal-version: >=1.10
+name: example
+version: 0.1.0
+build-type: Simple
+
+executable example
+  hs-source-dirs: src
+  main-is: Main.hs
+  ghc-options: -O2 -Wall -Werror
+  default-language: Haskell2010
+  build-depends: aeson
+               , aeson-gadt-th
+               , base
+               , bytestring
+               , constraints
+               , constraints-extras
+               , containers
+               , jsaddle
+               , reflex-datasource
+               , reflex-dom
+               , text
