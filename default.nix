@@ -16,16 +16,21 @@ in reflexPlatform.project ({ pkgs, ... }: {
   
   packages = {
     example = ./example;
+    reflex-datasource = ./reflex-datasource;
+    reflex-datasource-client = ./reflex-datasource-client;
+    reflex-datasource-server = ./reflex-datasource-server;
   };
 
   shells = {
-    ghc = ["example"];
-    ghcjs = ["example"];
+    ghc = ["example" "reflex-datasource" "reflex-datasource-client" "reflex-datasource-server"];
+    ghcjs = ["example" "reflex-datasource" "reflex-datasource-client"];
   };
 
-  overrides = self: super: {
-    reflex-datasource = self.callCabal2nix "reflex-datasource" (gitignore ./reflex-datasource) {};
-  };
+  # overrides = self: super: {
+  #   reflex-datasource = self.callCabal2nix "reflex-datasource" (gitignore ./reflex-datasource) {};
+  #   reflex-datasource-client = self.callCabal2nix "reflex-datasource-client" (gitignore ./reflex-datasource-client) {};
+  #   reflex-datasource-server = self.callCabal2nix "reflex-datasource-server" (gitignore ./reflex-datasource-server) {};
+  # };
   
   shellToolOverrides = ghc: super: {
     ghcid = pkgs.haskell.lib.justStaticExecutables super.ghcid;

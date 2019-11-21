@@ -15,6 +15,7 @@ import Data.Text
 import Reflex.Dom
 
 import Reflex.DataSource
+import Reflex.DataSource.Client
 
 main :: IO ()
 main = do
