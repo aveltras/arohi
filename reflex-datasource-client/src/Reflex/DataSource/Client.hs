@@ -14,6 +14,7 @@ import Data.Constraint.Extras
 import Data.Constraint.Forall
 import Data.Functor.Identity
 import Data.Map
+import Data.Text (Text)
 import Language.Javascript.JSaddle.Types (MonadJSM)
 import Reflex.DataSource
 import Reflex.Dom hiding (Error, Value)
@@ -29,11 +30,11 @@ runSourceWS :: forall t m req a.
   , TriggerEvent t m
   , ForallF ToJSON req
   , Has FromJSON req
-  ) => WithDataSource t req m a -> m a
-runSourceWS w = mdo
+  ) => Text -> WithDataSource t req m a -> m a
+runSourceWS wsUrl w = mdo
   let wsConfig = def & webSocketConfig_send .~ onSend
       onSend = (fmap . fmap) (LBS.toStrict . encode) (toList <$> onRawRequests) :: Event t [BS.ByteString]
-  ws <- webSocket "wsUrl" wsConfig
+  ws <- webSocket wsUrl wsConfig
   (result, onRequest) <- runRequesterT w onResponse
   (onRawRequests, onResponse) <- matchResponsesWithRequests codec onRequest (fmapMaybe decodeTag (_webSocket_recv ws))
   return result

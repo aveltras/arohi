@@ -1,3 +1,4 @@
 .ghc.*
+ghcid.reload
 dist
 dist-newstyle

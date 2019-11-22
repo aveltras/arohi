@@ -19,10 +19,17 @@ in reflexPlatform.project ({ pkgs, ... }: {
     reflex-datasource = ./reflex-datasource;
     reflex-datasource-client = ./reflex-datasource-client;
     reflex-datasource-server = ./reflex-datasource-server;
+    reflex-devserver = ./reflex-devserver;
   };
 
   shells = {
-    ghc = ["example" "reflex-datasource" "reflex-datasource-client" "reflex-datasource-server"];
+    ghc = [
+      "example"
+      "reflex-datasource"
+      "reflex-datasource-client"
+      "reflex-datasource-server"
+      "reflex-devserver"
+    ];
     ghcjs = ["example" "reflex-datasource" "reflex-datasource-client"];
   };
 

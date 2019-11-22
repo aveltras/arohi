@@ -15,9 +15,12 @@ executable example
                , constraints
                , constraints-extras
                , containers
+               , http-types
                , jsaddle
                , reflex-datasource
                , reflex-datasource-client
                , reflex-datasource-server
+               , reflex-devserver
                , reflex-dom
                , text
+               , wai

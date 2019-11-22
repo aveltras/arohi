@@ -3,3 +3,4 @@ packages:
   reflex-datasource/
   reflex-datasource-client/
   reflex-datasource-server/
+  reflex-devserver/
