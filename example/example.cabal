@@ -28,4 +28,5 @@ executable example
                , reflex-route-client
                , reflex-route-server
                , text
+               , transformers
                , wai

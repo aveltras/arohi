@@ -12,6 +12,7 @@ module Main where
 
 import qualified Control.Category as C
 import Control.Monad.Fix
+-- import Control.Monad.Trans.Class (lift)
 import Data.Aeson
 import Data.Aeson.GADT.TH
 import Data.Constraint.Extras.TH
@@ -31,12 +32,12 @@ import Text.Boomerang.String
 import Text.Boomerang.TH    (makeBoomerangs)
 
 import Reflex.DataSource
--- import Reflex.DataSource.Client
+import Reflex.DataSource.Client
 import Reflex.DataSource.Server
 import Reflex.DevServer
 import Reflex.Route
 import Reflex.Route.Client
--- import Reflex.Route.Server
+import Reflex.Route.Server
 
 -- #if defined(MIN_VERSION_reflex-devserver)
 -- #endif
@@ -59,7 +60,7 @@ sitemap =
 main :: IO ()
 main = do
   -- devServer 3003 3004 (Just "../ghcid.reload") (Main.mainWidget $ runSourceWS "ws://localhost:3004" widget) app (wsApp handler)
-  devServer 3003 3004 (Just "../ghcid.reload") (Main.mainWidget $ runClientRoute "http://localhost:3003" enc dec routeWidget) app (wsApp handler)
+  devServer 3003 3004 (Just "../ghcid.reload") (Main.mainWidget $ runSourceWS "ws://localhost:3004" $ runClientRoute "http://localhost:3003" enc dec routeWidget) app (wsApp handler)
   where
     enc = pack . (<>) "/" . fromMaybe "" . unparseString sitemap
     dec = rightToMaybe . parseString sitemap . Prelude.dropWhile (== '/') . unpack
@@ -68,20 +69,18 @@ data RequestG :: * -> * where
   RequestG1 :: RequestG Bool
   RequestG2 :: Int -> RequestG Int
 
-router :: (r ~ Sitemap, DomBuilder t m, Route t r m) => Maybe r -> m ()
-router = \case
-  Just Homepage -> el "h1" $ text "home"
-  Just Contact -> el "h1" $ text "contact"
-  Nothing -> el "h1" $ text "404"
-
 routeWidget ::
   ( r ~ Sitemap
+  , req ~ RequestG
   , DomBuilder t m
   , MonadHold t m
   , PostBuild t m
   , MonadFix m
   , Monad m
   -- , Prerender js t m
+  , PerformEvent t m
+  -- , Prerender js t m
+  , HasDataSource t req m
   , Route t r m
   ) => m ()
 routeWidget = do
@@ -95,6 +94,7 @@ routeWidget = do
           (Just Homepage) -> do
             el "h1" $ text "Home"
             linkTo Contact $ text "Contact"
+            widget
           (Just Contact) -> do
             el "h1" $ text "Contact"
             linkTo Homepage $ text "Home"
@@ -104,7 +104,18 @@ routeWidget = do
   blank
 
 
-widget :: (req ~ RequestG, DomBuilder t m, Monad m, PostBuild t m, MonadHold t m, MonadFix m, HasDataSource t req m) => m ()
+widget ::
+  ( req ~ RequestG
+  , r ~ Sitemap
+  , DomBuilder t m
+  , Monad m
+  , PostBuild t m
+  , MonadHold t m
+  , MonadFix m
+  , HasDataSource t req m
+  , PerformEvent t m
+  , Route t r m
+  ) => m ()
 widget = do
   el "h1" $ text "title"
   onClick <- button "click"
@@ -116,20 +127,24 @@ widget = do
   blank
 
 app :: Application
-app _req respond = do
-  bs <- renderFrontend $ runIOSource handler $ staticW headW widget
+app request respond = do
+  bs <- renderFrontend $ runIOSource handler $ runServerRoute "http://localhost:3003" request enc dec $ staticW headW routeWidget
   respond $ responseLBS
     status200
     [("Content-Type", "text/html")]
     (LBS.fromStrict bs)
+  where
+    enc = pack . (<>) "/" . fromMaybe "" . unparseString sitemap
+    dec = rightToMaybe . parseString sitemap . Prelude.dropWhile (== '/') . unpack
 
-headW :: DomBuilder t m => m ()
+headW :: (req ~ RequestG, r ~ Sitemap, MonadHold t m, MonadFix m, DomBuilder t m, PerformEvent t m, Route t r m) => m ()
 headW = do
   el "title" $ text "Title2"
   elAttr "link" ("rel" =: "stylesheet" <> "href" =: "all.css") blank
 
-staticW ::
+staticW :: -- forall t r req m js.
   ( req ~ RequestG
+  , r ~ Sitemap
   , DomBuilder t m
   , MonadHold t m
   , MonadFix m
@@ -138,6 +153,7 @@ staticW ::
   , Prerender js t m
   , TriggerEvent t m
   , HasDataSource t req m
+  , Route t r m
   ) => m () -> m () -> m ()
 staticW hW bodyW = do
   el "html" $ do
