@@ -24,7 +24,6 @@ import Reflex.Dom
 import qualified Reflex.Dom.Main as Main
 import Network.HTTP.Types
 import Network.Wai
-import qualified Data.ByteString as BS
 import qualified Data.ByteString.Lazy as LBS
 
 import Text.Boomerang
@@ -128,7 +127,7 @@ widget = do
 
 app :: Application
 app request respond = do
-  bs <- renderFrontend $ runIOSource handler $ runServerRoute "http://localhost:3003" request enc dec $ staticW headW routeWidget
+  (_, bs) <- renderStatic $ runIOSource handler $ runServerRoute "http://localhost:3003" request enc dec $ staticW headW routeWidget
   respond $ responseLBS
     status200
     [("Content-Type", "text/html")]
@@ -165,14 +164,6 @@ staticW hW bodyW = do
       eResp <- query ((RequestG1) <$ ePb)
       _ <- widgetHold (text "Waiting for Loading") ((\(b2) -> text ("Length (prerender) is: " <> (pack . show $ b2))) <$> eResp)
       bodyW
-
-renderFrontend ::
-  ( t ~ DomTimeline
-  , w ~ PostBuildT t (StaticDomBuilderT t (PerformEventT t DomHost))
-  ) => w () -> IO BS.ByteString
-renderFrontend w = do 
-  (_, bs) <- renderStatic w 
-  return bs
 
 handler :: RequestG a -> IO (Identity a)
 handler = \case

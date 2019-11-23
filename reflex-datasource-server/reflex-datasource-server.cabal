@@ -11,14 +11,8 @@ library
   build-depends: aeson
                , base
                , bytestring
-               , constraints
                , constraints-extras
-               , containers
                , dependent-map
-               , jsaddle
                , reflex-datasource
                , reflex-dom
-               , text
-               , wai
-               , wai-websockets
                , websockets

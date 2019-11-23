@@ -5,16 +5,15 @@
 module Reflex.DataSource.Server where
 
 import Control.Monad (forever)
-import Control.Monad.Fix
+import Control.Monad.Fix (MonadFix)
 import Control.Monad.IO.Class (MonadIO, liftIO)
-import Data.Aeson
-import qualified Data.ByteString as BS
+import Data.Aeson (FromJSON, ToJSON, Result(..), encode, fromJSON)
+import Data.Constraint.Extras (Has, has)
 import Data.Dependent.Map (Some(..))
-import Network.WebSockets
-import Reflex.DataSource
-import Data.Functor.Identity
-import Data.Constraint.Extras
-import Reflex.Dom hiding (Error)
+import Data.Functor.Identity (Identity)
+import Network.WebSockets (ServerApp, acceptRequest, forkPingThread, receiveData, sendBinaryData)
+import Reflex.DataSource (WithDataSource, decodeTag)
+import Reflex.Dom hiding (Error, Value)
 
 wsApp ::
   ( Has ToJSON req
@@ -23,14 +22,14 @@ wsApp ::
 wsApp handler pending_conn = do
     conn <- acceptRequest pending_conn
     forever $ do
-      bsReq <- receiveData conn :: IO BS.ByteString
+      bsReq <- receiveData conn
       forkPingThread conn 30
 
       case decodeTag bsReq of
-        Nothing -> error "error decoding request"
+        Nothing -> return ()
         Just (int, val) ->
           case fromJSON val of
-            Error s -> error s
+            Error _ -> return ()
             Success (Some req) -> do
               resp <- handler req
               sendBinaryData conn $ has @ToJSON req $ encode (int, resp)
