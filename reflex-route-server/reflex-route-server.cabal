@@ -1,31 +1,26 @@
 cabal-version: >=1.10
-name: example
+name: reflex-route-server
 version: 0.1.0
 build-type: Simple
 
-executable example
+library
   hs-source-dirs: src
-  main-is: Main.hs
+  exposed-modules: Reflex.Route.Server
   ghc-options: -O2 -Wall -Werror
   default-language: Haskell2010
   build-depends: aeson
-               , aeson-gadt-th
                , base
-               , boomerang
                , bytestring
                , constraints
                , constraints-extras
                , containers
-               , either
-               , http-types
+               , ghcjs-dom
                , jsaddle
-               , reflex-datasource
-               , reflex-datasource-client
-               , reflex-datasource-server
-               , reflex-devserver
+               , jsaddle-dom
+               , lens
+               , network-uri
                , reflex-dom
                , reflex-route
-               , reflex-route-client
-               , reflex-route-server
                , text
+               , transformers
                , wai

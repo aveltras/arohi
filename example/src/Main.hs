@@ -7,13 +7,17 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE TypeOperators #-}
 module Main where
 
+import qualified Control.Category as C
 import Control.Monad.Fix
 import Data.Aeson
 import Data.Aeson.GADT.TH
 import Data.Constraint.Extras.TH
+import Data.Either.Combinators (rightToMaybe)
 import Data.Functor.Identity
+import Data.Maybe (fromMaybe)
 import Data.Text
 import Reflex.Dom
 import qualified Reflex.Dom.Main as Main
@@ -22,21 +26,83 @@ import Network.Wai
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Lazy as LBS
 
+import Text.Boomerang
+import Text.Boomerang.String
+import Text.Boomerang.TH    (makeBoomerangs)
+
 import Reflex.DataSource
-import Reflex.DataSource.Client
+-- import Reflex.DataSource.Client
 import Reflex.DataSource.Server
 import Reflex.DevServer
+import Reflex.Route
+import Reflex.Route.Client
+-- import Reflex.Route.Server
 
 -- #if defined(MIN_VERSION_reflex-devserver)
 -- #endif
 
+data Sitemap
+  = Homepage
+  | Contact
+  deriving (Eq, Show)
+
+instance Semigroup Sitemap where
+  (<>) _ b = b
+
+$(makeBoomerangs ''Sitemap)
+
+sitemap :: StringBoomerang () (Sitemap :- ())
+sitemap =
+      rHomepage
+    <>  rContact C.. lit "contact"
+
 main :: IO ()
 main = do
-  devServer 3003 3004 (Just "../ghcid.reload") (Main.mainWidget $ runSourceWS "ws://localhost:3004" widget) app (wsApp handler)
+  -- devServer 3003 3004 (Just "../ghcid.reload") (Main.mainWidget $ runSourceWS "ws://localhost:3004" widget) app (wsApp handler)
+  devServer 3003 3004 (Just "../ghcid.reload") (Main.mainWidget $ runClientRoute "http://localhost:3003" enc dec routeWidget) app (wsApp handler)
+  where
+    enc = pack . (<>) "/" . fromMaybe "" . unparseString sitemap
+    dec = rightToMaybe . parseString sitemap . Prelude.dropWhile (== '/') . unpack
 
 data RequestG :: * -> * where
   RequestG1 :: RequestG Bool
   RequestG2 :: Int -> RequestG Int
+
+router :: (r ~ Sitemap, DomBuilder t m, Route t r m) => Maybe r -> m ()
+router = \case
+  Just Homepage -> el "h1" $ text "home"
+  Just Contact -> el "h1" $ text "contact"
+  Nothing -> el "h1" $ text "404"
+
+routeWidget ::
+  ( r ~ Sitemap
+  , DomBuilder t m
+  , MonadHold t m
+  , PostBuild t m
+  , MonadFix m
+  , Monad m
+  -- , Prerender js t m
+  , Route t r m
+  ) => m ()
+routeWidget = do
+  _onBuild <- getPostBuild
+  dRoute <- askRoute
+  linkTo Homepage $ text "Home"
+  linkTo Contact $ text "Contact"
+
+  let _widget =
+        ffor dRoute $ \case
+          (Just Homepage) -> do
+            el "h1" $ text "Home"
+            linkTo Contact $ text "Contact"
+          (Just Contact) -> do
+            el "h1" $ text "Contact"
+            linkTo Homepage $ text "Home"
+          Nothing -> el "h1" $ text "404"
+  _onWidget <- dyn _widget
+  
+  blank
+
 
 widget :: (req ~ RequestG, DomBuilder t m, Monad m, PostBuild t m, MonadHold t m, MonadFix m, HasDataSource t req m) => m ()
 widget = do
@@ -62,7 +128,17 @@ headW = do
   el "title" $ text "Title2"
   elAttr "link" ("rel" =: "stylesheet" <> "href" =: "all.css") blank
 
-staticW :: (req ~ RequestG, DomBuilder t m, MonadHold t m, MonadFix m, PerformEvent t m, PostBuild t m, Prerender js t m, TriggerEvent t m, HasDataSource t req m) => m () -> m () -> m ()
+staticW ::
+  ( req ~ RequestG
+  , DomBuilder t m
+  , MonadHold t m
+  , MonadFix m
+  , PerformEvent t m
+  , PostBuild t m
+  , Prerender js t m
+  , TriggerEvent t m
+  , HasDataSource t req m
+  ) => m () -> m () -> m ()
 staticW hW bodyW = do
   el "html" $ do
     el "head" $ do
@@ -85,7 +161,7 @@ renderFrontend w = do
 handler :: RequestG a -> IO (Identity a)
 handler = \case
   RequestG1 -> return $ Identity False
-  RequestG2 int -> return $ Identity (int + 2)
+  RequestG2 i -> return $ Identity (i + 2)
 
 deriveJSONGADT ''RequestG
 deriveArgDict ''RequestG
