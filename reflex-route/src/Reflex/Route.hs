@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE DefaultSignatures #-}
 {-# LANGUAGE FlexibleInstances #-}
@@ -20,7 +21,9 @@ import Control.Monad.Trans.Class (MonadTrans, lift)
 import Control.Monad.Trans.Reader (ReaderT(..), ask, runReaderT)
 import Data.Proxy (Proxy(..))
 import Data.Text (Text)
+#ifndef ghcjs_HOST_OS
 import Language.Javascript.JSaddle (MonadJSM)
+#endif
 import Reflex.Dom
 import Reflex.Host.Class (MonadReflexCreateTrigger, ReflexHost)
 
@@ -36,7 +39,9 @@ newtype RouteT t r m a = RouteT { unRouteT :: ReaderT (RouteInfo t r) (EventWrit
     , NotReady t
     , PerformEvent t
     , MonadIO
+#ifndef ghcjs_HOST_OS
     , MonadJSM
+#endif
     , HasDocument
     , DomRenderHook t
     , MonadReflexCreateTrigger t
