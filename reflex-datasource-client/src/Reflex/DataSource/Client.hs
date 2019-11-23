@@ -14,6 +14,7 @@ import Data.Constraint.Forall (ForallF)
 import Data.Functor.Identity (Identity(..))
 import Data.Map (toList)
 import Data.Text (Text)
+
 import Language.Javascript.JSaddle.Types (MonadJSM)
 import Reflex.DataSource (WithDataSource, decodeTag)
 import Reflex.Dom hiding (Error, Value)

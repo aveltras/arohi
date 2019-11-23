@@ -11,9 +11,4 @@ library
   build-depends: aeson
                , base
                , bytestring
-               , constraints
-               , constraints-extras
-               , containers
-               , jsaddle
                , reflex-dom
-               , text

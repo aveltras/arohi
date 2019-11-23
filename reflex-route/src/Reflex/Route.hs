@@ -1,10 +1,8 @@
-{-# LANGUAGE AllowAmbiguousTypes #-}
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE DefaultSignatures #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE RecursiveDo #-}
@@ -16,15 +14,15 @@ module Reflex.Route where
 import Control.Lens ((%~))
 import Control.Monad.Fix (MonadFix)
 import Control.Monad.IO.Class (MonadIO)
-import Control.Monad.Primitive
-import Control.Monad.Ref
+import Control.Monad.Primitive (PrimMonad, PrimState, primitive)
+import Control.Monad.Ref (MonadRef, Ref, newRef, readRef, writeRef)
 import Control.Monad.Trans.Class (MonadTrans, lift)
 import Control.Monad.Trans.Reader (ReaderT(..), ask, runReaderT)
 import Data.Proxy (Proxy(..))
 import Data.Text (Text)
 import Language.Javascript.JSaddle (MonadJSM)
 import Reflex.Dom
-import Reflex.Host.Class
+import Reflex.Host.Class (MonadReflexCreateTrigger, ReflexHost)
 
 newtype RouteT t r m a = RouteT { unRouteT :: ReaderT (RouteInfo t r) (EventWriterT t r m) a }
   deriving
@@ -39,7 +37,6 @@ newtype RouteT t r m a = RouteT { unRouteT :: ReaderT (RouteInfo t r) (EventWrit
     , PerformEvent t
     , MonadIO
     , MonadJSM
-    -- , Prerender t js
     , HasDocument
     , DomRenderHook t
     , MonadReflexCreateTrigger t
@@ -50,13 +47,6 @@ newtype RouteT t r m a = RouteT { unRouteT :: ReaderT (RouteInfo t r) (EventWrit
 instance HasJSContext m => HasJSContext (RouteT t r m) where
   type JSContextPhantom (RouteT t r m) = JSContextPhantom m
   askJSContext = lift askJSContext
-
--- instance (Prerender js t m, Monad m) => Prerender js t (RouteT t r m) where
---   type Client (RouteT t r m) = RouteT t r (Client m)
---   prerender server client = RouteT $ do
---     r <- ask
---     (a, onWrite) <- lift $ prerender (runRouteT server r) (runRouteT client r)
---     return a
 
 instance HasJS x m => HasJS x (RouteT t r m) where
   type JSX (RouteT t r m) = JSX m
@@ -74,8 +64,6 @@ instance (PerformEvent t m, Prerender js t m, Monad m, Reflex t, Semigroup r) =>
     let (a, r) = splitDynPure d
     lift . tellEvent $ switchPromptlyDyn r
     pure a
-
--- runRouteT :: (Monad m, Reflex t, Semigroup r) => RouteT t r m a -> RouteInfo t r -> m (a, Event t r)
 
 instance MonadRef m => MonadRef (RouteT t r m) where
   type Ref (RouteT t r m) = Ref m
@@ -143,14 +131,12 @@ linkTo r w = do
   enc <- showRoute
   let cfg = (def :: ElementConfig EventResult t (DomBuilderSpace m))
         & elementConfig_eventSpec %~ addEventSpecFlags (Proxy :: Proxy (DomBuilderSpace m)) Click (const preventDefault)
-        -- & elementConfig_initialAttributes .~ "href" =: ((<>) "http://localhost:3003/" .  pack $ fromMaybe "/" (unparseString sitemap r))
         & elementConfig_initialAttributes .~ "href" =: ("http://localhost:3003" <> enc r)
   (e, a) <- element "a" cfg w
   setRoute $ r <$ domEvent Click e
   return a
 
-runRouteView
-  :: forall t m r a.
+runRouteView :: 
   ( TriggerEvent t m
   , MonadFix m
   , MonadHold t m

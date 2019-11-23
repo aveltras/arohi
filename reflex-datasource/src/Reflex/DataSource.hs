@@ -1,24 +1,13 @@
-{-# LANGUAGE AllowAmbiguousTypes #-}
 {-# LANGUAGE ConstraintKinds #-}
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE GADTs #-}
-{-# LANGUAGE KindSignatures #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE PolyKinds #-}
-{-# LANGUAGE RecursiveDo #-}
-{-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TypeApplications #-}
-{-# LANGUAGE TypeFamilies #-}
 module Reflex.DataSource where
 
-import Data.Aeson
-import qualified Data.ByteString as BS
-import Data.Functor.Identity
+import Data.Aeson (Value, decodeStrict)
+import Data.ByteString (ByteString)
+import Data.Functor.Identity (Identity(..))
 import Reflex.Dom hiding (Error, Value)
     
-decodeTag :: BS.ByteString -> Maybe (Int, Value)
+decodeTag :: ByteString -> Maybe (Int, Value)
 decodeTag mValue =
   case decodeStrict mValue of
     Nothing         -> Nothing :: Maybe (Int, Value)

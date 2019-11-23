@@ -4,16 +4,14 @@
 module Reflex.Route.Client where
 
 import Control.Monad.Fix (MonadFix)
-
 import Data.Text (Text, pack, unpack)
 import GHCJS.DOM (currentWindowUnchecked)
-import GHCJS.DOM.Window (getLocation)
 import GHCJS.DOM.Types (MonadJSM, SerializedScriptValue(..))
+import GHCJS.DOM.Window (getLocation)
 import Language.Javascript.JSaddle (jsNull)
+import Network.URI (URI(..))
 import Reflex.Dom
-import Network.URI
-
-import Reflex.Route
+import Reflex.Route (RouteInfo(..), RouteT, runRouteView)
 
 runClientRoute
   :: forall t r m.
@@ -39,10 +37,10 @@ runClientRoute prefix encoder decoder widget = do
   window <- currentWindowUnchecked
   location <- getLocation window
   currentURI <- (\uri -> uri { uriAuthority = Nothing }) <$> getLocationUri location
-  dRoute <- holdDyn Nothing ((decoder $ (pack . uriPath) currentURI) <$ onBuild)
+  dRoute <- holdDyn Nothing (decoder (pack . uriPath $ currentURI) <$ onBuild)
   let ri = RouteInfo
           { _routeInfoPrefix = prefix
-          , _routeInfoCurrent = traceDynWith (\_mRoute -> "changeRoute") dRoute
+          , _routeInfoCurrent = dRoute
           , _routeInfoEncoder = encoder
           , _routeInfoDecoder = decoder
           }

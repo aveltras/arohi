@@ -8,12 +8,7 @@ library
   exposed-modules: Reflex.Route
   ghc-options: -O2 -Wall -Werror
   default-language: Haskell2010
-  build-depends: aeson
-               , base
-               , bytestring
-               , constraints
-               , constraints-extras
-               , containers
+  build-depends: base
                , jsaddle
                , lens
                , primitive
