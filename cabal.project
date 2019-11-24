@@ -1,9 +1,9 @@
 packages:
-  reflex-datasource/
-  reflex-datasource-client/
-  reflex-datasource-server/
-  reflex-devserver/
-  reflex-route/
-  reflex-route-client/
-  reflex-route-server/
+  arohi-datasource/
+  arohi-datasource-client/
+  arohi-datasource-server/
+  arohi-route/
+  arohi-route-client/
+  arohi-route-server/
+  arohi-server/
   skeleton/

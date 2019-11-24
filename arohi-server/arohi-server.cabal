@@ -1,0 +1,36 @@
+cabal-version: >=1.10
+name: arohi-server
+version: 0.1.0
+build-type: Simple
+
+flag devserver
+  description: Use DevServer
+  default: False
+  manual: True
+            
+library
+  hs-source-dirs: src
+  exposed-modules: Arohi.Server
+  ghc-options: -O2 -Wall -Werror
+  default-language: Haskell2010
+  if flag(devserver)
+    build-depends: jsaddle, jsaddle-warp, wai-cors
+  build-depends: aeson
+               , arohi-datasource
+               , arohi-datasource-server
+               , arohi-route
+               , arohi-route-server
+               , async
+               , base
+               , bytestring
+               , constraints
+               , constraints-extras
+               , dependent-map
+               , http-types
+               , network-uri
+               , reflex-dom
+               , text
+               , wai
+               , wai-websockets
+               , warp
+               , websockets

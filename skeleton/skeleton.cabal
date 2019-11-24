@@ -4,7 +4,7 @@ version: 0.1.0
 build-type: Simple
 
 flag use-devserver
-  description: Use Reflex DevServer
+  description: Use Arohi DevServer
   default: False
   manual: True
             
@@ -27,11 +27,11 @@ common shared
                , either
                , ghcjs-dom
                , jsaddle
-               , reflex-datasource
-               , reflex-datasource-client
+               , arohi-datasource
+               , arohi-datasource-client
                , reflex-dom
-               , reflex-route
-               , reflex-route-client
+               , arohi-route
+               , arohi-route-client
                , text
                , transformers          
             
@@ -48,11 +48,8 @@ executable server
     buildable: False
   hs-source-dirs: src/server src/common
   main-is: Main.hs
-  if flag(use-devserver)
-    build-depends: reflex-devserver
-  else
-    build-depends: wai-websockets, warp, websockets
-  build-depends: http-types
-               , reflex-datasource-server
-               , reflex-route-server
+  build-depends: arohi-server
+               , http-types
+               , arohi-datasource-server
+               , arohi-route-server
                , wai

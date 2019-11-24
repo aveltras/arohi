@@ -12,12 +12,12 @@ import GHCJS.DOM.Document (getBody)
 import GHCJS.DOM.HTMLElement (getDataset)
 import GHCJS.DOM.DOMStringMap (get)
 import Language.Javascript.JSaddle (JSM)
-import Reflex.DataSource
-import Reflex.DataSource.Client
+import Arohi.DataSource
+import Arohi.DataSource.Client
 import Reflex.Dom
 import qualified Reflex.Dom.Main as Main
-import Reflex.Route
-import Reflex.Route.Client
+import Arohi.Route
+import Arohi.Route.Client
 
 entryPoint :: JSM ()
 entryPoint = do

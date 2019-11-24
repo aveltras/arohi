@@ -1,0 +1,14 @@
+cabal-version: >=1.10
+name: arohi-datasource
+version: 0.1.0
+build-type: Simple
+
+library
+  hs-source-dirs: src
+  exposed-modules: Arohi.DataSource
+  ghc-options: -O2 -Wall -Werror
+  default-language: Haskell2010
+  build-depends: aeson
+               , base
+               , bytestring
+               , reflex-dom

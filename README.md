@@ -1,3 +1,3 @@
-# Reflex Toolkit #
+# Arohi #
 
-See https://github.com/aveltras/reflex-toolkit-skeleton for a usage example.
+See https://github.com/aveltras/arohi-skeleton for a usage example.

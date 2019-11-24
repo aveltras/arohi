@@ -12,32 +12,32 @@ in reflexPlatform.project ({ pkgs, ... }: {
   withHoogle = false;
   
   packages = {
-    reflex-datasource = ./reflex-datasource;
-    reflex-datasource-client = ./reflex-datasource-client;
-    reflex-datasource-server = ./reflex-datasource-server;
-    reflex-devserver = ./reflex-devserver;
-    reflex-route = ./reflex-route;
-    reflex-route-client = ./reflex-route-client;
-    reflex-route-server = ./reflex-route-server;
+    arohi-datasource = ./arohi-datasource;
+    arohi-datasource-client = ./arohi-datasource-client;
+    arohi-datasource-server = ./arohi-datasource-server;
+    arohi-route = ./arohi-route;
+    arohi-route-client = ./arohi-route-client;
+    arohi-route-server = ./arohi-route-server;
+    arohi-server = ./arohi-server;
     skeleton = ./skeleton;
   };
 
   shells = {
     ghc = [
-      "reflex-datasource"
-      "reflex-datasource-client"
-      "reflex-datasource-server"
-      "reflex-devserver"
-      "reflex-route"
-      "reflex-route-client"
-      "reflex-route-server"
+      "arohi-datasource"
+      "arohi-datasource-client"
+      "arohi-datasource-server"
+      "arohi-route"
+      "arohi-route-client"
+      "arohi-route-server"
+      "arohi-server"
       "skeleton"
     ];
     ghcjs = [
-      "reflex-datasource"
-      "reflex-datasource-client"
-      "reflex-route"
-      "reflex-route-client"
+      "arohi-datasource"
+      "arohi-datasource-client"
+      "arohi-route"
+      "arohi-route-client"
       "skeleton"
     ];
   };  

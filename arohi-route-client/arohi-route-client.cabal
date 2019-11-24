@@ -1,0 +1,17 @@
+cabal-version: >=1.10
+name: arohi-route-client
+version: 0.1.0
+build-type: Simple
+
+library
+  hs-source-dirs: src
+  exposed-modules: Arohi.Route.Client
+  ghc-options: -O2 -Wall -Werror
+  default-language: Haskell2010
+  build-depends: base
+               , ghcjs-dom
+               , jsaddle
+               , network-uri
+               , reflex-dom
+               , arohi-route
+               , text
