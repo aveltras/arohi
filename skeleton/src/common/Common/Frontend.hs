@@ -6,6 +6,10 @@ import Common.Api
 import Common.Sitemap
 import Control.Monad.Fix
 import Data.Text
+import GHCJS.DOM (currentDocument)
+import GHCJS.DOM.Document (getBody)
+import GHCJS.DOM.HTMLElement (getDataset)
+import GHCJS.DOM.DOMStringMap (get)
 import Language.Javascript.JSaddle (JSM)
 import Reflex.DataSource
 import Reflex.DataSource.Client
@@ -15,7 +19,13 @@ import Reflex.Route
 import Reflex.Route.Client
 
 entryPoint :: JSM ()
-entryPoint = Main.mainWidget $ runSourceWS "ws://localhost:3004" $ runClientRoute "http://localhost:3003" encoder decoder routeWidget
+entryPoint = do
+  Just doc <- currentDocument
+  Just body <- getBody doc
+  dataset <- getDataset body
+  prefix <- get dataset ("prefix" :: Text)
+  ws <- get dataset ("ws" :: Text)
+  Main.mainWidget $ runSourceWS ws $ runClientRoute prefix encoder decoder routeWidget
 
 headW :: (req ~ RequestG, r ~ Sitemap, MonadHold t m, MonadFix m, DomBuilder t m, PerformEvent t m, Route t r m) => m ()
 headW = do
