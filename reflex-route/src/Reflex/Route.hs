@@ -99,6 +99,10 @@ data RouteInfo t r = RouteInfo
   }
 
 class (Monad m) => Route t r m | m -> r, m -> t where
+
+  askPrefix :: m Text
+  default askPrefix :: (Route t r m', m ~ tx m', MonadTrans tx) => m Text
+  askPrefix = lift askPrefix
   
   askRoute :: m (Dynamic t (Maybe r))
   default askRoute :: (Route t r m', m ~ tx m', MonadTrans tx) => m (Dynamic t (Maybe r))
@@ -124,6 +128,7 @@ instance Route t r m => Route t r (StaticDomBuilderT t m)
 instance Route t r m => Route t r (TriggerEventT t m)
 
 instance (Monad m, Reflex t, Semigroup r) => Route t r (RouteT t r m) where
+  askPrefix = _routeInfoPrefix <$> RouteT ask
   askRoute = _routeInfoCurrent <$> RouteT ask
   setRoute =  RouteT . tellEvent
   showRoute = _routeInfoEncoder <$> RouteT ask
@@ -134,9 +139,10 @@ runRouteT (RouteT m) ri = runEventWriterT $ runReaderT m ri
 linkTo :: forall t m a r. (DomBuilder t m, Route t r m) => r -> m a -> m a
 linkTo r w = do
   enc <- showRoute
+  prefix <- askPrefix
   let cfg = (def :: ElementConfig EventResult t (DomBuilderSpace m))
         & elementConfig_eventSpec %~ addEventSpecFlags (Proxy :: Proxy (DomBuilderSpace m)) Click (const preventDefault)
-        & elementConfig_initialAttributes .~ "href" =: ("http://localhost:3003" <> enc r)
+        & elementConfig_initialAttributes .~ "href" =: (prefix <> enc r)
   (e, a) <- element "a" cfg w
   setRoute $ r <$ domEvent Click e
   return a
