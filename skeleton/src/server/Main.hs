@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE TypeFamilies #-}
 module Main where
@@ -13,15 +14,29 @@ import Network.HTTP.Types
 import Network.Wai
 import Reflex.DataSource
 import Reflex.DataSource.Server
-import Reflex.DevServer
-import Reflex.Dom
+import Reflex.Dom hiding (run)
 import Reflex.Route
 import Reflex.Route.Server
+#if defined(MIN_VERSION_reflex_devserver)
+import Reflex.DevServer
+#else
+import Network.Wai.Handler.Warp (run)
+import Network.Wai.Handler.WebSockets (websocketsOr)
+import Network.WebSockets (defaultConnectionOptions)
+#endif
+import System.Environment (lookupEnv)
 
 main :: IO ()
 main = do
-  let wsUrl = "ws://localhost:3004"
-  devServer 3003 3004 (Just "../ghcid.reload") entryPoint (app wsUrl) (wsApp handler)
+  appPort <- maybe 8080 read <$> lookupEnv "APP_PORT"
+  wsHost <- maybe "localhost" pack <$> lookupEnv "WS_URL"
+  let wsUrl = "ws://" <> wsHost <> ":" <> (pack . show) appPort
+#if defined(MIN_VERSION_reflex_devserver)
+  jsaddlePort <- maybe 3003 read <$> lookupEnv "JSADDLE_PORT"
+  devServer jsaddlePort appPort (Just "../ghcid.reload") entryPoint (app wsUrl) (wsApp handler)
+#else
+  run appPort $ websocketsOr defaultConnectionOptions (wsApp handler) (app wsUrl)
+#endif
 
 handler :: RequestG a -> IO (Identity a)
 handler = \case
@@ -46,9 +61,15 @@ staticW wsUrl hW bodyW = do
   el "html" $ do
     el "head" $ do
       hW
-      elAttr "script" ("src" =: "jsaddle.js") blank
-    elAttr "body" ("data-ws" =: wsUrl <> "data-prefix" =: prefix) $ do
-      bodyW
+      elAttr "script" ("src" =: scriptFile) blank    
+    elAttr "body" ("data-ws" =: wsUrl <> "data-prefix" =: prefix) bodyW
+
+scriptFile :: Text
+#if defined(MIN_VERSION_reflex_devserver)
+scriptFile = "jsaddle.js"
+#else
+scriptFile = "all.js"
+#endif
 
 app :: Text -> Application
 app wsUrl request respond = do
@@ -56,4 +77,4 @@ app wsUrl request respond = do
   respond $ responseLBS
     status200
     [("Content-Type", "text/html")]
-    (LBS.fromStrict bs)
+    (LBS.fromStrict $ "<!doctype html>" <> bs)
