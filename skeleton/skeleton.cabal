@@ -3,11 +3,6 @@ name: skeleton
 version: 0.1.0
 build-type: Simple
 
-flag use-devserver
-  description: Use Arohi DevServer
-  default: False
-  manual: True
-            
 common shared
   default-language: Haskell2010
   ghc-options: -O2 -threaded -Wall
