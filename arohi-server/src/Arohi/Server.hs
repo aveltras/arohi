@@ -27,6 +27,8 @@ import Arohi.DataSource.Server
 
 #if defined(MIN_VERSION_jsaddle_warp)
 import Control.Concurrent.Async (concurrently_)
+import qualified Data.ByteString.Lazy.Char8 as C8
+import Data.Text (pack)
 import Network.Wai.Middleware.Cors ( cors, simpleCorsResourcePolicy, CorsResourcePolicy(..))
 import Language.Javascript.JSaddle (JSM)
 import Language.Javascript.JSaddle.Run (syncPoint)
@@ -44,14 +46,14 @@ runApp ::
 runApp fullWidget headWidget bodyWidget handler enc dec = do
   appPort <- maybe 8080 read <$> lookupEnv "AROHI_PORT"
   jsaddlePort <- maybe 3003 read <$> lookupEnv "JSADDLE_PORT"
-  let wsServer = run appPort (websocketsOr defaultConnectionOptions (wsApp handler) $ httpApp "//localhost:3003/jsaddle.js" headWidget bodyWidget handler enc dec)
+  let wsServer = run appPort (websocketsOr defaultConnectionOptions (wsApp handler) $ httpApp ("//localhost:" <> (pack . show) jsaddlePort <> "/jsaddle.js") headWidget bodyWidget handler enc dec)
       jsaddleApp = runSettings (setPort jsaddlePort (setTimeout 3600 defaultSettings)) =<<
-        (cors (const (Just $ simpleCorsResourcePolicy { corsRequestHeaders = [ "content-type" ] } )) <$> jsaddleOr defaultConnectionOptions (fullWidget >> syncPoint) app)
+        (cors (const (Just $ simpleCorsResourcePolicy { corsRequestHeaders = [ "content-type" ] } )) <$> jsaddleOr defaultConnectionOptions (fullWidget >> syncPoint) (app jsaddlePort))
   concurrently_ jsaddleApp wsServer
 
-app :: Application
-app req res = case (requestMethod req, pathInfo req) of
-  ("GET", ["jsaddle.js"]) -> res $ responseLBS status200 [("Content-Type", "application/javascript")] $ jsaddleJs' (Just "http://localhost:3003") False
+app :: Int -> Application
+app jsaddlePort req res = case (requestMethod req, pathInfo req) of
+  ("GET", ["jsaddle.js"]) -> res $ responseLBS status200 [("Content-Type", "application/javascript")] $ jsaddleJs' (Just $ "http://localhost:" <> (C8.pack . show) jsaddlePort) False
   _ -> res $ responseLBS status400 [] "Not a valid JSaddleWarp request"
 
 #else
@@ -67,7 +69,7 @@ runApp ::
   => a -> w ()-> w () -> (forall x. req x -> IO (Identity x)) -> (r -> Text) -> (Text -> Maybe r) -> IO ()
 runApp _ headWidget bodyWidget handler enc dec = do
   appPort <- maybe 8080 read <$> lookupEnv "AROHI_PORT"
-  run appPort (websocketsOr defaultConnectionOptions (wsApp handler) $ httpApp "//localhost:3003/jsaddle.js" headWidget bodyWidget handler enc dec)
+  run appPort (websocketsOr defaultConnectionOptions (wsApp handler) $ httpApp "all.js" headWidget bodyWidget handler enc dec)
 
 #endif
 
@@ -76,15 +78,6 @@ httpApp ::
   , Semigroup r
   , Show r
   , w ~ RouteT t r (WithDataSource t req (PostBuildT t (StaticDomBuilderT t (PerformEventT t DomHost))))
-  -- , DomBuilder t w
-  -- , MonadHold t w
-  -- , MonadFix w
-  -- , PerformEvent t w
-  -- , PostBuild t w
-  -- , Prerender js t w
-  -- , TriggerEvent t w
-  -- , HasDataSource t req w
-  -- , Route t r w
   )
   => Text
   -> w ()
