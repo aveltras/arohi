@@ -41,7 +41,7 @@ headW ::
   , Route t r m
   ) => m ()
 headW = do
-  el "title" $ text "Title here"
+  el "title" $ text "Title"
   elAttr "link" ("rel" =: "stylesheet" <> "href" =: "all.css") blank
 
 routeWidget ::

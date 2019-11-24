@@ -44,6 +44,7 @@ runApp ::
   )
   => JSM () -> w ()-> w () -> (forall x. req x -> IO (Identity x)) -> (r -> Text) -> (Text -> Maybe r) -> IO ()
 runApp fullWidget headWidget bodyWidget handler enc dec = do
+  writeFile "../ghcid.reload" ""
   appPort <- maybe 8080 read <$> lookupEnv "AROHI_PORT"
   jsaddlePort <- maybe 3003 read <$> lookupEnv "JSADDLE_PORT"
   let wsServer = run appPort (websocketsOr defaultConnectionOptions (wsApp handler) $ httpApp ("//localhost:" <> (pack . show) jsaddlePort <> "/jsaddle.js") headWidget bodyWidget handler enc dec)
