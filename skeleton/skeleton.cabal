@@ -1,0 +1,50 @@
+cabal-version: 2.2
+name: skeleton
+version: 0.1.0
+build-type: Simple
+
+common shared
+  default-language: Haskell2010
+  ghc-options: -O2 -threaded -Wall
+  other-modules: Common.Api
+                 Common.Frontend
+                 Common.Sitemap
+  default-extensions: OverloadedStrings
+  build-depends: aeson
+               , aeson-gadt-th
+               , base
+               , boomerang
+               , bytestring
+               , constraints
+               , constraints-extras
+               , containers
+               , dependent-sum
+               , either
+               , ghcjs-dom
+               , jsaddle
+               , reflex-datasource
+               , reflex-datasource-client
+               , reflex-dom
+               , reflex-route
+               , reflex-route-client
+               , text
+               , transformers          
+            
+executable client
+  import: shared
+  if !impl(ghcjs)
+    buildable: False           
+  hs-source-dirs: src/client src/common
+  main-is: Main.hs
+            
+executable server
+  import: shared
+  if impl(ghcjs)
+    buildable: False
+  hs-source-dirs: src/server src/common
+  main-is: Main.hs
+  build-depends: http-types
+               , reflex-datasource-server
+               , reflex-devserver
+               , reflex-route-server
+               , wai

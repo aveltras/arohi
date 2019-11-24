@@ -19,6 +19,7 @@ in reflexPlatform.project ({ pkgs, ... }: {
     reflex-route = ./reflex-route;
     reflex-route-client = ./reflex-route-client;
     reflex-route-server = ./reflex-route-server;
+    skeleton = ./skeleton;
   };
 
   shells = {
@@ -30,12 +31,14 @@ in reflexPlatform.project ({ pkgs, ... }: {
       "reflex-route"
       "reflex-route-client"
       "reflex-route-server"
+      "skeleton"
     ];
     ghcjs = [
       "reflex-datasource"
       "reflex-datasource-client"
       "reflex-route"
       "reflex-route-client"
+      "skeleton"
     ];
   };  
 })
