@@ -1,4 +1,5 @@
 packages:
+  arohi-config/
   arohi-datasource/
   arohi-datasource-client/
   arohi-datasource-server/
