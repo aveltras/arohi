@@ -9,9 +9,8 @@ flag devserver
   manual: True
             
 library
-  hs-source-dirs: src
   exposed-modules: Arohi.Server
-  ghc-options: -O2 -Wall -Werror
+  ghc-options: -Wall
   default-language: Haskell2010
   if flag(devserver)
     build-depends: jsaddle, jsaddle-warp, wai-cors

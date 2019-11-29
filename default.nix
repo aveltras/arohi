@@ -12,6 +12,7 @@ in reflexPlatform.project ({ pkgs, ... }: {
   withHoogle = false;
   
   packages = {
+    arohi-client = ./arohi-client;
     arohi-config = ./arohi-config;
     arohi-datasource = ./arohi-datasource;
     arohi-datasource-client = ./arohi-datasource-client;
@@ -25,6 +26,7 @@ in reflexPlatform.project ({ pkgs, ... }: {
 
   shells = {
     ghc = [
+      "arohi-client"
       "arohi-config"
       "arohi-datasource"
       "arohi-datasource-client"
@@ -36,6 +38,7 @@ in reflexPlatform.project ({ pkgs, ... }: {
       "skeleton"
     ];
     ghcjs = [
+      "arohi-client"
       "arohi-config"
       "arohi-datasource"
       "arohi-datasource-client"

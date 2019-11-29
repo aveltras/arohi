@@ -7,25 +7,19 @@ import Common.Sitemap
 import Control.Monad.Fix
 import Data.Functor (void)
 import Data.Text
-import GHCJS.DOM (currentDocument)
-import GHCJS.DOM.Document (getBody)
-import GHCJS.DOM.HTMLElement (getDataset)
-import GHCJS.DOM.DOMStringMap (get)
 import Language.Javascript.JSaddle (JSM)
 import Arohi.DataSource
 import Arohi.DataSource.Client
 import Reflex.Dom
 import qualified Reflex.Dom.Main as Main
+import Arohi.Config
 import Arohi.Route
 import Arohi.Route.Client
 
 entryPoint :: JSM ()
 entryPoint = do
-  Just doc <- currentDocument
-  Just body <- getBody doc
-  dataset <- getDataset body
-  prefix <- get dataset ("prefix" :: Text)
-  ws <- get dataset ("ws" :: Text)
+  prefix <- extractFromDOM "prefix"
+  ws <- extractFromDOM "ws"
   Main.mainWidgetWithHead
     (runSourceWS ws $ runClientRoute prefix encoder decoder headW)
     (runSourceWS ws $ runClientRoute prefix encoder decoder routeWidget)

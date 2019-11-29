@@ -5,7 +5,7 @@ build-type: Simple
 
 common shared
   default-language: Haskell2010
-  ghc-options: -O2 -threaded -Wall
+  ghc-options: -threaded -Wall
   other-modules: Common.Api
                  Common.Frontend
                  Common.Sitemap
@@ -25,6 +25,7 @@ common shared
                , arohi-datasource
                , arohi-datasource-client
                , reflex-dom
+               , arohi-config
                , arohi-route
                , arohi-route-client
                , text
@@ -34,14 +35,14 @@ executable client
   import: shared
   if !impl(ghcjs)
     buildable: False           
-  hs-source-dirs: src/client src/common
+  hs-source-dirs: client common
   main-is: Main.hs
             
 executable server
   import: shared
   if impl(ghcjs)
     buildable: False
-  hs-source-dirs: src/server src/common
+  hs-source-dirs: server common
   main-is: Main.hs
   build-depends: arohi-server
                , http-types
